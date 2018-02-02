@@ -1,4 +1,4 @@
-package com.bosch.connector.actility;
+package com.bosch.bcx2018.lorawan;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

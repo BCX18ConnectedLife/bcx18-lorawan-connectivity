@@ -1,9 +1,8 @@
-package com.bosch.connector.actility.controller;
+package com.bosch.bcx2018.lorawan.controller;
 
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -25,10 +24,10 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 @RestController
-@RequestMapping(value = "/ttn", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-public class TTNController {
+@RequestMapping(value = "/actility", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+public class ActilityController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TTNController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActilityController.class);
 
     @Value("${lora-reverse-proxy.tenant}")
     private String tenant;
@@ -49,35 +48,53 @@ public class TTNController {
     CloseableHttpClient client =
             HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
-// {
-//	"app_id": "klenk_app",
-//  "dev_id": "klenk_stm32",
-//  "hardware_serial": "0087C850A54323C5",
-//  "port": 1,
-//  "counter": 1742,
-//  "payload_raw": "AWcAygJoXwMCE/8EAAM=",
-//  "metadata": {
-//        "time": "2018-02-02T07:37:11.184826364Z",
-//                "frequency": 868.3,
-//                "modulation": "LORA",
-//                "data_rate": "SF7BW125",
-//                "coding_rate": "4/5",
-//                "gateways": [{
-//                    "gtw_id": "eui-b827ebfffe1e310d",
-//                    "timestamp": 1409205075,
-//                    "time": "2018-02-02T07:37:11.161772Z",
-//                    "channel": 1,
-//                    "rssi": -55,
-//                    "snr": 10.2,
-//                    "rf_chain": 1,
-//                    "latitude": 48.95697,
-//                    "longitude": 9.43752,
-//                    "altitude": 300
-//        }]
-//    },
-//    "downlink_url": "https://integrations.thethingsnetwork.org/ttn-eu/api/v2/down/klenk_app/klenk_process?key=ttn-account-v2.xmFS--XBHYPeFh_c1xXW8bzj8gC6mJmsW99AGqRgoAk"
-//}
-//
+//    {
+//        "DevEUI_uplink": {
+//        "Time": "2018-01-31T17:18:25.365+01:00",
+//                "DevEUI": "ACDE48234567ABCF",
+//                "FPort": "1",
+//                "FCntUp": "1782",
+//                "ADRbit": "1",
+//                "MType": "2",
+//                "FCntDn": "1751",
+//                "payload_hex": "00",
+//                "mic_hex": "857c3ab8",
+//                "Lrcid": "00000127",
+//                "LrrRSSI": "-49.000000",
+//                "LrrSNR": "8.000000",
+//                "SpFact": "11",
+//                "SubBand": "G1",
+//                "Channel": "LC2",
+//                "DevLrrCnt": "1",
+//                "Lrrid": "08060669",
+//                "Late": "0",
+//                "LrrLAT": "48.823025",
+//                "LrrLON": "9.296049",
+//                "Lrrs": {
+//            "Lrr": [{
+//                "Lrrid": "08060669",
+//                        "Chain": "0",
+//                        "LrrRSSI": "-49.000000",
+//                        "LrrSNR": "8.000000",
+//                        "LrrESP": "-49.638920"
+//            }]
+//        },
+//        "CustomerID": "100114152",
+//                "CustomerData": {
+//            "alr": {
+//                "pro": "ADRF/ARF8123AA",
+//                        "ver": "1"
+//            }
+//        },
+//        "ModelCfg": "0",
+//        "InstantPER": "0.000000",
+//        "MeanPER": "0.000003",
+//        "DevAddr": "055835AC",
+//        "AckRequested": "0",
+//        "rawMacCommands": ""
+//        }
+//    }
+
 
     @PostMapping
     public ResponseEntity<Void> post(@RequestBody() String body, @RequestParam("apikey") String incomingApiKey) {
@@ -91,12 +108,10 @@ public class TTNController {
 
         Object document = Configuration.defaultConfiguration().jsonProvider().parse(body);
 
-        String deviceEUI = JsonPath.read(document, "$.hardware_serial");
-        String payloadRaw = JsonPath.read(document, "$.payload_raw");
+        String deviceEUI = JsonPath.read(document, "$.DevEUI_uplink.DevEUI");
+        String payloadHex = JsonPath.read(document, "$.DevEUI_uplink.payload_hex");
 
-        byte[] payload = Base64.decodeBase64(payloadRaw);
-
-        LOGGER.info("Tenant={} DeviceEUI={} PayloadRaw={} PayloadHex={}", tenant, deviceEUI, payloadRaw, Hex.encodeHexString(payload));
+        LOGGER.info("Tenant={} DeviceEUI={} PayloadHex={}", tenant, deviceEUI, payloadHex);
 
         String url = MessageFormat.format("https://rest.bosch-iot-hub.com/telemetry/{0}/{1}",
                 tenant, deviceEUI);
@@ -125,7 +140,7 @@ public class TTNController {
             strbuf.append("    \"max_range_value\": 50,");
             strbuf.append("    \"min_range_value\": -20,");
             strbuf.append("    \"sensor_units\": \"C\", ");
-            strbuf.append("    \"sensor_value\": " + payload[0] + ", ");
+            strbuf.append("    \"sensor_value\": " + Integer.valueOf(payloadHex.substring(0, 2), 16) + ", ");
             strbuf.append("    \"min_measured_value\": -15, ");
             strbuf.append("    \"max_measured_value\": 45 ");
             strbuf.append("  }");
@@ -149,11 +164,6 @@ public class TTNController {
         return ResponseEntity
                 .ok()
                 .build();
-    }
-
-    public static void main(String args[]) {
-        byte[] payload = { 29 };
-        System.out.println(Base64.encodeBase64String(payload));
     }
 
 }
