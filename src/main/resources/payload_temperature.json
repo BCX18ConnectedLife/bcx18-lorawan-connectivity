@@ -1,0 +1,15 @@
+{
+  "topic": "{0}/{1}/things/twin/commands/modify",
+  "headers": {
+    "response-required": false
+  },
+  "path": "/features/temperature/properties/status",
+  "value": {
+    "max_range_value": 50,
+    "min_range_value": -20,
+    "sensor_units": "°C",
+    "sensor_value": {2},
+    "min_measured_value": -15,
+    "max_measured_value": 45
+  }
+}

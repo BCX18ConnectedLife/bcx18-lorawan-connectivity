@@ -1,0 +1,12 @@
+---
+applications:
+- name: lorawan-reverse-proxy
+  memory: 1G
+  instances: 1
+  buildpack: java_buildpack
+  path: target/lorawan-reverse-proxy-0.0.1-SNAPSHOT.jar
+  routes:
+  - route: lorawan-reverse-proxy.apps.de1.bosch-iot-cloud.com
+  env:
+      lora-reverse-proxy_tenant: BCX18
+      lora-reverse-proxy_apikey: abc123
