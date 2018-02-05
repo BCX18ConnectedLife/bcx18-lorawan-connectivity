@@ -5,14 +5,12 @@ import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,19 +33,6 @@ public class TTNController {
 
     @Value("${lora-reverse-proxy.apikey}")
     private String apikey;
-
-    HttpHost proxy = new HttpHost("10.0.2.2", 3128, "http");
-
-    int timeout = 10;
-    RequestConfig config = RequestConfig.custom()
-            .setConnectTimeout(timeout * 1000)
-            .setConnectionRequestTimeout(timeout * 1000)
-            .setSocketTimeout(timeout * 1000)
-            //.setProxy(proxy)
-            .build();
-
-    CloseableHttpClient client =
-            HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
 // {
 //	"app_id": "klenk_app",
@@ -115,7 +100,8 @@ public class TTNController {
         request.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
         request.setHeader(HttpHeaders.AUTHORIZATION, "Basic " + basicAuthentication);
 
-        try {
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+
             StringBuffer strbuf = new StringBuffer();
             strbuf.append("{");
             strbuf.append("  \"topic\": \"" + tenant + "/" + deviceEUI + "/things/twin/commands/modify\", ");
@@ -136,7 +122,7 @@ public class TTNController {
             request.setEntity(new StringEntity(strbuf.toString()));
 
             long startTs = System.currentTimeMillis();
-            HttpResponse response = client.execute(request);
+            HttpResponse response = httpClient.execute(request);
             long endTs = System.currentTimeMillis();
 
             int statusCode = response.getStatusLine().getStatusCode();
