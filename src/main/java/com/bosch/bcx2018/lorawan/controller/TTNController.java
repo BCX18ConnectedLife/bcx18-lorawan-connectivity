@@ -103,10 +103,12 @@ public class TTNController {
 
         String deviceEUI = JsonPath.read(document, "$.hardware_serial");
         String payloadRaw = JsonPath.read(document, "$.payload_raw");
+        String port = JsonPath.read(document, "$.port");
 
         byte[] payload = Base64.decodeBase64(payloadRaw);
+        String payloadHex = Hex.encodeHexString(payload);
 
-        LOGGER.info("Tenant={} DeviceEUI={} PayloadRaw={} PayloadHex={}", tenant, deviceEUI, payloadRaw, Hex.encodeHexString(payload));
+        LOGGER.info("Tenant={} DeviceEUI={} PayloadRaw={} PayloadHex={}", tenant, deviceEUI, payloadRaw, payloadHex);
 
         String url = MessageFormat.format("https://rest.bosch-iot-hub.com/telemetry/{0}/{1}",
                 tenant, deviceEUI);
@@ -129,17 +131,8 @@ public class TTNController {
 
             StringBuffer strbuf = new StringBuffer();
             strbuf.append("{");
-            strbuf.append("  \"topic\": \"" + tenant + "/" + deviceEUI + "/things/twin/commands/modify\", ");
-            strbuf.append("  \"headers\": { \"response-required\": false }, ");
-            strbuf.append("  \"path\": \"/features/temperature/properties/status\", ");
-            strbuf.append("  \"value\": {");
-            strbuf.append("    \"max_range_value\": 50,");
-            strbuf.append("    \"min_range_value\": -20,");
-            strbuf.append("    \"sensor_units\": \"C\", ");
-            strbuf.append("    \"sensor_value\": " + payload[0] + ", ");
-            strbuf.append("    \"min_measured_value\": -15, ");
-            strbuf.append("    \"max_measured_value\": 45 ");
-            strbuf.append("  }");
+            strbuf.append("  \"payloadHex\": \"" + payloadHex + "\", ");
+            strbuf.append("  \"port\": \"" + port + "\"");
             strbuf.append("}");
 
             LOGGER.info(strbuf.toString());
@@ -161,10 +154,4 @@ public class TTNController {
                 .ok()
                 .build();
     }
-
-    public static void main(String args[]) {
-        byte[] payload = { 29 };
-        System.out.println(Base64.encodeBase64String(payload));
-    }
-
 }
