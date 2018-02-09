@@ -103,7 +103,7 @@ public class TTNController {
 
         String deviceEUI = JsonPath.read(document, "$.hardware_serial");
         String payloadRaw = JsonPath.read(document, "$.payload_raw");
-        String port = JsonPath.read(document, "$.port");
+        Integer port = JsonPath.read(document, "$.port");
 
         byte[] payload = Base64.decodeBase64(payloadRaw);
         String payloadHex = Hex.encodeHexString(payload);
@@ -132,7 +132,7 @@ public class TTNController {
             StringBuffer strbuf = new StringBuffer();
             strbuf.append("{");
             strbuf.append("  \"payloadHex\": \"" + payloadHex + "\", ");
-            strbuf.append("  \"port\": \"" + port + "\"");
+            strbuf.append("  \"port\": " + port );
             strbuf.append("}");
 
             LOGGER.info(strbuf.toString());

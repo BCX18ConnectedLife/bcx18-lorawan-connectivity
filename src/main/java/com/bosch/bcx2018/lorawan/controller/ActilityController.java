@@ -146,7 +146,7 @@ public class ActilityController {
             StringBuffer strbuf = new StringBuffer();
             strbuf.append("{");
             strbuf.append("  \"payloadHex\": \"" + payloadHex + "\", ");
-            strbuf.append("  \"port\": \"" + port + "\"");
+            strbuf.append("  \"port\": " + Integer.valueOf(port) );
             strbuf.append("}");
 
             LOGGER.info(strbuf.toString());
