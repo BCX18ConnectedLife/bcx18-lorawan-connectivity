@@ -8,5 +8,5 @@ applications:
   routes:
   - route: lorawan-reverse-proxy.apps.de1.bosch-iot-cloud.com
   env:
-      lora-reverse-proxy_tenant: BCX18
+      lora-reverse-proxy_tenant: DX_TENANT
       lora-reverse-proxy_apikey: abc123

@@ -17,26 +17,11 @@ REST Endpoint for TTN console. Receives JSON payload and converts
 it to "Things" format. **Note:** Set request parameter `apikey` to the secret API key
 communicated during the Hackathon.
 
-## Limitations
-Currently only takes 1 byte as payload and interprets it as a temperature value.
-  Example (Sensor value is 25°C):
-
-    {
-	    "topic": "BCX18/07191920146/things/twin/commands/modify",
-	    "headers": {
-		    "response-required": false
-	    },
-	    "path": "/features/temperature/properties/status",
-	    "value": {
-		    "max_range_value": 50,
-		    "min_range_value": -20,
-		    "sensor_units": "C",
-		    "sensor_value": 25,
-		    "min_measured_value": -15,
-		    "max_measured_value": 45
-	    }
-    }  
-  
+## About payload
+Payload sent by LoRaWAN devices should be kept to a minimum in order to not violate
+duty cycle restrictions. The Developer Console allows to map the payload back to the
+status properties of the device. This avoids that devices need to send their
+values in the "chatty" Ditto format.
 
 ## Build and push to BIC
 Build with
@@ -59,5 +44,7 @@ the app `lorawan-reverse-proxy`.
 Select "REVEAL USER PROVIDED ENV VARS"
 
 * Update environment variable `lora-reverse-proxy_apikey` to a secret key.
+* Make sure environment variable `lora-reverse-proxy_tenant` has value `DX_TENANT`. 
+  This is temporarily required to make sure the proof-of-concept payload mapping works.
 * Restart the app `lorawan-reverse-proxy` to make the app aware of the new value.
     
